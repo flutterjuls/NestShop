@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopNest — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#0f0f1a;color:#e0e0e8;min-height:100vh}
+
+  /* ===== LOGIN SCREEN ===== */
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f0f1a}
+  .login-box{background:#1a1a2e;border:1px solid #2d2d4a;border-radius:16px;padding:2.5rem;width:400px;max-width:95vw}
+  .login-logo{font-family:'Playfair Display',serif;color:#e94560;font-size:1.6rem;text-align:center;margin-bottom:0.4rem}
+  .login-sub{color:#a0a0b8;font-size:0.8rem;text-align:center;margin-bottom:2rem}
+  .input-group{margin-bottom:1.1rem}
+  .input-group label{display:block;font-size:0.78rem;color:#a0a0b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+  .input-group input{width:100%;background:#0f0f1a;border:1px solid #2d2d4a;border-radius:8px;padding:0.65rem 1rem;color:#e0e0e8;font-size:0.875rem;outline:none;font-family:'DM Sans',sans-serif;transition:border-color 0.2s}
+  .input-group input:focus{border-color:#e94560}
+  .login-btn{width:100%;background:#e94560;color:#fff;border:none;padding:0.75rem;border-radius:8px;font-size:0.9rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:0.5rem}
+  .login-btn:hover{background:#c73652}
+  .login-error{color:#f87171;font-size:0.8rem;text-align:center;margin-top:0.75rem;display:none}
+  .back-link{text-align:center;margin-top:1.5rem;font-size:0.8rem;color:#a0a0b8}
+  .back-link a{color:#e94560;text-decoration:none}
+
+  /* ===== ADMIN DASHBOARD ===== */
+  #dashboardScreen{display:none;min-height:100vh;flex-direction:column}
+  .admin-nav{background:#1a1a2e;border-bottom:1px solid #2d2d4a;padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .admin-logo{font-family:'Playfair Display',serif;color:#e94560;font-size:1.1rem}
+  .admin-logo span{color:#a0a0b8;font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.75rem;margin-left:8px}
+  .admin-user{display:flex;align-items:center;gap:1rem}
+  .admin-user span{font-size:0.8rem;color:#a0a0b8}
+  .logout-btn{background:rgba(233,69,96,0.15);border:1px solid rgba(233,69,96,0.3);color:#e94560;padding:5px 14px;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s}
+  .logout-btn:hover{background:rgba(233,69,96,0.25)}
+  .admin-body{display:flex;flex:1}
+  .admin-sidebar{width:220px;background:#13132a;border-right:1px solid #2d2d4a;padding:1.5rem 0;flex-shrink:0;min-height:calc(100vh - 60px)}
+  .sidebar-section{font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:#4a4a6a;padding:0.5rem 1.5rem;margin-top:1rem}
+  .sidebar-item{padding:0.65rem 1.5rem;font-size:0.85rem;color:#a0a0b8;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.2s;border-left:3px solid transparent}
+  .sidebar-item:hover{color:#e0e0e8;background:rgba(255,255,255,0.03)}
+  .sidebar-item.active{color:#e94560;border-left-color:#e94560;background:rgba(233,69,96,0.08)}
+  .sidebar-item .icon{font-size:1rem;width:18px;text-align:center}
+  .admin-content{flex:1;padding:2rem;overflow-y:auto}
+  .admin-section{display:none}
+  .admin-section.active{display:block}
+  .page-title{font-size:1.25rem;font-weight:500;color:#e0e0e8;margin-bottom:0.35rem}
+  .page-sub{font-size:0.8rem;color:#6060a0;margin-bottom:1.75rem}
+
+  /* STATS */
+  .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+  .stat-card{background:#1a1a2e;border:1px solid #2d2d4a;border-radius:10px;padding:1.25rem}
+  .stat-label{font-size:0.72rem;color:#a0a0b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+  .stat-value{font-size:1.75rem;font-weight:700;color:#e0e0e8;line-height:1}
+  .stat-change{font-size:0.72rem;margin-top:6px;color:#4ade80}
+  .stat-change.down{color:#f87171}
+
+  /* TABLE */
+  .admin-card{background:#1a1a2e;border:1px solid #2d2d4a;border-radius:10px;padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto}
+  .admin-card-title{font-size:0.9rem;font-weight:500;color:#c0c0d8;margin-bottom:1.25rem}
+  .admin-table{width:100%;border-collapse:collapse;font-size:0.83rem;min-width:500px}
+  .admin-table th{text-align:left;padding:0.6rem 1rem;color:#6060a0;font-weight:400;border-bottom:1px solid #2d2d4a;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
+  .admin-table td{padding:0.8rem 1rem;border-bottom:1px solid #1e1e3a;color:#c0c0d0;vertical-align:middle}
+  .admin-table tr:last-child td{border-bottom:none}
+  .admin-table tr:hover td{background:rgba(255,255,255,0.02)}
+  .status-badge{padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:500;white-space:nowrap}
+  .s-delivered{background:rgba(74,222,128,0.15);color:#4ade80}
+  .s-pending{background:rgba(251,191,36,0.15);color:#fbbf24}
+  .s-cancelled{background:rgba(248,113,113,0.15);color:#f87171}
+  .s-active{background:rgba(74,222,128,0.15);color:#4ade80}
+  .s-inactive{background:rgba(160,160,184,0.15);color:#a0a0b8}
+
+  /* SEARCH BAR */
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;gap:1rem;flex-wrap:wrap}
+  .search-input{background:#0f0f1a;border:1px solid #2d2d4a;border-radius:8px;padding:0.5rem 1rem;color:#e0e0e8;font-size:0.8rem;font-family:'DM Sans',sans-serif;outline:none;width:220px;transition:border-color 0.2s}
+  .search-input:focus{border-color:#e94560}
+  .search-input::placeholder{color:#4a4a6a}
+  .action-btn{background:rgba(233,69,96,0.15);border:1px solid rgba(233,69,96,0.3);color:#e94560;padding:0.45rem 1rem;border-radius:6px;font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s}
+  .action-btn:hover{background:rgba(233,69,96,0.25)}
+  .select-filter{background:#0f0f1a;border:1px solid #2d2d4a;border-radius:8px;padding:0.5rem 0.75rem;color:#a0a0b8;font-size:0.8rem;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer}
+
+  /* PRODUCT IMAGE CELL */
+  .prod-cell{display:flex;align-items:center;gap:10px}
+  .prod-emoji{width:36px;height:36px;background:#13132a;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:2rem;right:2rem;background:#1a1a2e;border:1px solid #2d2d4a;color:#e0e0e8;padding:0.75rem 1.5rem;border-radius:8px;font-size:0.85rem;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">ShopNest</div>
+    <div class="login-sub">Admin Portal — Authorized Access Only</div>
+    <div class="input-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Enter username" autofocus onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="input-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In to Dashboard</button>
+    <div class="login-error" id="loginError">⚠ Invalid username or password.</div>
+    <div class="back-link"><a href="index.html">← Back to Store</a></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardScreen" style="display:none;flex-direction:column">
+  <nav class="admin-nav">
+    <div class="admin-logo">ShopNest <span>Admin Console</span></div>
+    <div class="admin-user">
+      <span>👤 admin</span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+  <div class="admin-body">
+    <div class="admin-sidebar">
+      <div class="sidebar-section">Main</div>
+      <div class="sidebar-item active" onclick="switchTab('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+      <div class="sidebar-section">Management</div>
+      <div class="sidebar-item" onclick="switchTab('products',this)"><span class="icon">📦</span> Products</div>
+      <div class="sidebar-item" onclick="switchTab('orders',this)"><span class="icon">🛒</span> Orders</div>
+      <div class="sidebar-item" onclick="switchTab('customers',this)"><span class="icon">👥</span> Customers</div>
+      <div class="sidebar-section">Settings</div>
+      <div class="sidebar-item" onclick="switchTab('settings',this)"><span class="icon">⚙️</span> Settings</div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- DASHBOARD TAB -->
+      <div class="admin-section active" id="tab-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Welcome back, Admin. Here's your store overview.</div>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value">₱84,200</div>
+            <div class="stat-change">↑ 12% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-value">248</div>
+            <div class="stat-change">↑ 8% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Products</div>
+            <div class="stat-value">12</div>
+            <div class="stat-change">Active listings</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Customers</div>
+            <div class="stat-value">91</div>
+            <div class="stat-change down">↓ 3% this month</div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-title">Recent Orders</div>
+          <table class="admin-table">
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Product</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>#ORD-1042</td><td>Maria Santos</td><td>Ceramic Mug Set</td><td>₱890</td><td>Apr 18</td><td><span class="status-badge s-delivered">Delivered</span></td></tr>
+              <tr><td>#ORD-1041</td><td>Juan dela Cruz</td><td>Minimalist Watch</td><td>₱2,450</td><td>Apr 17</td><td><span class="status-badge s-pending">Pending</span></td></tr>
+              <tr><td>#ORD-1040</td><td>Ana Reyes</td><td>Linen Tote Bag</td><td>₱650</td><td>Apr 17</td><td><span class="status-badge s-delivered">Delivered</span></td></tr>
+              <tr><td>#ORD-1039</td><td>Carlo Bautista</td><td>Scented Candle</td><td>₱380</td><td>Apr 16</td><td><span class="status-badge s-cancelled">Cancelled</span></td></tr>
+              <tr><td>#ORD-1038</td><td>Lea Gonzales</td><td>Bamboo Notebook</td><td>₱420</td><td>Apr 15</td><td><span class="status-badge s-delivered">Delivered</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PRODUCTS TAB -->
+      <div class="admin-section" id="tab-products">
+        <div class="page-title">Products</div>
+        <div class="page-sub">Manage your product listings.</div>
+        <div class="toolbar">
+          <input class="search-input" type="text" placeholder="🔍  Search products..." oninput="filterTable('productsTable',this.value,[1,2])">
+          <div style="display:flex;gap:8px">
+            <select class="select-filter" onchange="filterByCategory(this.value)">
+              <option value="">All Categories</option>
+              <option>Accessories</option><option>Home</option><option>Bags</option>
+              <option>Stationery</option><option>Tech</option>
+            </select>
+            <button class="action-btn" onclick="showToast('Add product feature coming soon!')">+ Add Product</button>
+          </div>
+        </div>
+        <div class="admin-card" style="padding:0">
+          <table class="admin-table" id="productsTable" style="margin:0">
+            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="productsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ORDERS TAB -->
+      <div class="admin-section" id="tab-orders">
+        <div class="page-title">Orders</div>
+        <div class="page-sub">View and manage all customer orders.</div>
+        <div class="toolbar">
+          <input class="search-input" type="text" placeholder="🔍  Search orders..." oninput="filterTable('ordersTable',this.value,[0,1,2])">
+          <select class="select-filter">
+            <option>All Statuses</option><option>Delivered</option><option>Pending</option><option>Cancelled</option>
+          </select>
+        </div>
+        <div class="admin-card" style="padding:0">
+          <table class="admin-table" id="ordersTable">
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Product</th><th>Qty</th><th>Total</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>#ORD-1042</td><td>Maria Santos</td><td>Ceramic Mug Set</td><td>2</td><td>₱890</td><td>Apr 18, 2025</td><td><span class="status-badge s-delivered">Delivered</span></td></tr>
+              <tr><td>#ORD-1041</td><td>Juan dela Cruz</td><td>Minimalist Watch</td><td>1</td><td>₱2,450</td><td>Apr 17, 2025</td><td><span class="status-badge s-pending">Pending</span></td></tr>
+              <tr><td>#ORD-1040</td><td>Ana Reyes</td><td>Linen Tote Bag</td><td>3</td><td>₱650</td><td>Apr 17, 2025</td><td><span class="status-badge s-delivered">Delivered</span></td></tr>
+              <tr><td>#ORD-1039</td><td>Carlo Bautista</td><td>Scented Candle</td><td>1</td><td>₱380</td><td>Apr 16, 2025</td><td><span class="status-badge s-cancelled">Cancelled</span></td></tr>
+              <tr><td>#ORD-1038</td><td>Lea Gonzales</td><td>Bamboo Notebook</td><td>2</td><td>₱420</td><td>Apr 15, 2025</td><td><span class="status-badge s-delivered">Delivered</span></td></tr>
+              <tr><td>#ORD-1037</td><td>Ben Torres</td><td>Canvas Backpack</td><td>1</td><td>₱1,650</td><td>Apr 14, 2025</td><td><span class="status-badge s-delivered">Delivered</span></td></tr>
+              <tr><td>#ORD-1036</td><td>Sofia Cruz</td><td>Wireless Earbuds</td><td>1</td><td>₱3,200</td><td>Apr 13, 2025</td><td><span class="status-badge s-pending">Pending</span></td></tr>
+              <tr><td>#ORD-1035</td><td>Marco Reyes</td><td>Leather Card Wallet</td><td>2</td><td>₱1,560</td><td>Apr 12, 2025</td><td><span class="status-badge s-delivered">Delivered</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS TAB -->
+      <div class="admin-section" id="tab-customers">
+        <div class="page-title">Customers</div>
+        <div class="page-sub">Browse your registered customers.</div>
+        <div class="toolbar">
+          <input class="search-input" type="text" placeholder="🔍  Search customers..." oninput="filterTable('customersTable',this.value,[0,1])">
+        </div>
+        <div class="admin-card" style="padding:0">
+          <table class="admin-table" id="customersTable">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>Total Spent</th><th>Joined</th></tr></thead>
+            <tbody>
+              <tr><td>Maria Santos</td><td>maria@email.com</td><td>+63 917 111 1111</td><td>8</td><td>₱12,400</td><td>Jan 2025</td></tr>
+              <tr><td>Juan dela Cruz</td><td>juan@email.com</td><td>+63 917 222 2222</td><td>3</td><td>₱5,800</td><td>Feb 2025</td></tr>
+              <tr><td>Ana Reyes</td><td>ana@email.com</td><td>+63 917 333 3333</td><td>12</td><td>₱18,900</td><td>Nov 2024</td></tr>
+              <tr><td>Carlo Bautista</td><td>carlo@email.com</td><td>+63 917 444 4444</td><td>1</td><td>₱380</td><td>Apr 2025</td></tr>
+              <tr><td>Lea Gonzales</td><td>lea@email.com</td><td>+63 917 555 5555</td><td>5</td><td>₱7,200</td><td>Mar 2025</td></tr>
+              <tr><td>Ben Torres</td><td>ben@email.com</td><td>+63 917 666 6666</td><td>9</td><td>₱15,600</td><td>Dec 2024</td></tr>
+              <tr><td>Sofia Cruz</td><td>sofia@email.com</td><td>+63 917 777 7777</td><td>4</td><td>₱9,100</td><td>Jan 2025</td></tr>
+              <tr><td>Marco Reyes</td><td>marco@email.com</td><td>+63 917 888 8888</td><td>6</td><td>₱11,200</td><td>Feb 2025</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div class="admin-section" id="tab-settings">
+        <div class="page-title">Settings</div>
+        <div class="page-sub">Manage your store and account settings.</div>
+        <div class="admin-card" style="max-width:520px">
+          <div class="admin-card-title">Store Information</div>
+          <div style="display:grid;gap:1rem">
+            <div><label style="font-size:0.75rem;color:#6060a0;display:block;margin-bottom:5px">Store Name</label><input style="width:100%;background:#0f0f1a;border:1px solid #2d2d4a;border-radius:8px;padding:0.6rem 1rem;color:#e0e0e8;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none" value="ShopNest"></div>
+            <div><label style="font-size:0.75rem;color:#6060a0;display:block;margin-bottom:5px">Contact Email</label><input style="width:100%;background:#0f0f1a;border:1px solid #2d2d4a;border-radius:8px;padding:0.6rem 1rem;color:#e0e0e8;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none" value="hello@shopnest.ph"></div>
+            <div><label style="font-size:0.75rem;color:#6060a0;display:block;margin-bottom:5px">Currency</label><input style="width:100%;background:#0f0f1a;border:1px solid #2d2d4a;border-radius:8px;padding:0.6rem 1rem;color:#e0e0e8;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none" value="PHP (₱)"></div>
+            <button class="action-btn" style="width:fit-content" onclick="showToast('Settings saved!')">Save Changes</button>
+          </div>
+        </div>
+        <div class="admin-card" style="max-width:520px">
+          <div class="admin-card-title">Change Password</div>
+          <div style="display:grid;gap:1rem">
+            <div><label style="font-size:0.75rem;color:#6060a0;display:block;margin-bottom:5px">Current Password</label><input type="password" style="width:100%;background:#0f0f1a;border:1px solid #2d2d4a;border-radius:8px;padding:0.6rem 1rem;color:#e0e0e8;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none" placeholder="••••••••"></div>
+            <div><label style="font-size:0.75rem;color:#6060a0;display:block;margin-bottom:5px">New Password</label><input type="password" style="width:100%;background:#0f0f1a;border:1px solid #2d2d4a;border-radius:8px;padding:0.6rem 1rem;color:#e0e0e8;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none" placeholder="••••••••"></div>
+            <button class="action-btn" style="width:fit-content" onclick="showToast('Password updated!')">Update Password</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---- CREDENTIALS (replace with backend auth in production) ----
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'admin123';
+
+// ---- PRODUCTS DATA ----
+const products=[
+  {id:1,name:"Minimalist Watch",emoji:"⌚",category:"Accessories",price:2450,stock:14,active:true},
+  {id:2,name:"Ceramic Mug Set",emoji:"☕",category:"Home",price:890,stock:28,active:true},
+  {id:3,name:"Linen Tote Bag",emoji:"👜",category:"Bags",price:650,stock:35,active:true},
+  {id:4,name:"Scented Candle",emoji:"🕯️",category:"Home",price:380,stock:52,active:true},
+  {id:5,name:"Bamboo Notebook",emoji:"📓",category:"Stationery",price:420,stock:40,active:true},
+  {id:6,name:"Wireless Earbuds",emoji:"🎧",category:"Tech",price:3200,stock:9,active:true},
+  {id:7,name:"Linen Throw Pillow",emoji:"🛋️",category:"Home",price:560,stock:22,active:true},
+  {id:8,name:"Fountain Pen",emoji:"🖊️",category:"Stationery",price:1100,stock:17,active:true},
+  {id:9,name:"Leather Card Wallet",emoji:"💳",category:"Accessories",price:780,stock:31,active:true},
+  {id:10,name:"Succulent Planter",emoji:"🌱",category:"Home",price:490,stock:44,active:true},
+  {id:11,name:"Portable Charger",emoji:"🔋",category:"Tech",price:1850,stock:11,active:false},
+  {id:12,name:"Canvas Backpack",emoji:"🎒",category:"Bags",price:1650,stock:19,active:true}
+];
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginError');
+  if(u===ADMIN_USER && p===ADMIN_PASS){
+    document.getElementById('loginScreen').style.display='none';
+    const dash=document.getElementById('dashboardScreen');
+    dash.style.display='flex';
+    renderProducts();
+  } else {
+    err.style.display='block';
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function doLogout(){
+  document.getElementById('dashboardScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginError').style.display='none';
+}
+
+function switchTab(tab, el){
+  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  el.classList.add('active');
+}
+
+function renderProducts(filter){
+  const tbody=document.getElementById('productsBody');
+  tbody.innerHTML='';
+  const list=filter?products.filter(p=>p.category===filter):products;
+  list.forEach(p=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><div class="prod-cell"><div class="prod-emoji">${p.emoji}</div><span>${p.name}</span></div></td>
+      <td>${p.category}</td>
+      <td>₱${p.price.toLocaleString()}</td>
+      <td style="color:${p.stock<12?'#fbbf24':'#c0c0d0'}">${p.stock} units</td>
+      <td><span class="status-badge ${p.active?'s-active':'s-inactive'}">${p.active?'Active':'Inactive'}</span></td>
+      <td><button class="action-btn" style="font-size:0.72rem;padding:3px 10px" onclick="showToast('Edit for &quot;${p.name}&quot; coming soon!')">Edit</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterByCategory(cat){
+  renderProducts(cat||null);
+}
+
+function filterTable(tableId, query, cols){
+  const table=document.getElementById(tableId);
+  const rows=table.querySelectorAll('tbody tr');
+  rows.forEach(row=>{
+    const cells=row.querySelectorAll('td');
+    const text=cols.map(i=>cells[i]?.textContent||'').join(' ').toLowerCase();
+    row.style.display=text.includes(query.toLowerCase())?'':'none';
+  });
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// Allow Enter key to submit login
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && document.getElementById('loginScreen').style.display!=='none') doLogin();
+});
+</script>
+</body>
+</html>
